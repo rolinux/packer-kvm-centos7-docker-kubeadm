@@ -1,0 +1,45 @@
+{
+  "builders": [
+    {
+      "name": "template-centos7-x86_64",
+      "type": "qemu",
+      "format": "qcow2",
+      "accelerator": "kvm",
+      "qemu_binary": "/usr/bin/kvm",
+      "net_device": "virtio-net",
+      "disk_interface": "virtio",
+      "disk_cache": "none",
+
+      "qemuargs": [[ "-m", "2048M" ],[ "-smp", "2" ]],
+
+      "ssh_wait_timeout": "30m",
+
+      "ssh_username": "root",
+      "ssh_password": "root",
+      "iso_urls": "/home/radu/Downloads/CentOS-7-x86_64-Minimal-1810.iso",
+      "iso_checksum": "38d5d51d9d100fd73df031ffd6bd8b1297ce24660dc8c13a3b8b4534a4bd291c",
+      "iso_checksum_type": "sha256",
+
+      "boot_command": [
+        "<tab> net.ifnames=0 biosdevname=0 text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/centos7-kickstart.cfg<enter><wait>"
+      ],
+
+      "disk_size": "10240",
+
+      "headless": "true",
+      "http_directory": ".",
+      "shutdown_command": "sudo /usr/sbin/shutdown -h now",
+      "output_directory": "artifacts/qemu"
+    }
+  ],
+  "provisioners": [
+    {
+      "type": "shell",
+      "execute_command": "{{ .Vars }} sudo -E bash '{{ .Path }}'",
+      "inline": [
+        "yum install -y docker-ce kubelet kubeadm kubectl --disableexcludes=kubernetes",
+        "systemctl enable docker kubelet"
+      ]
+    }
+  ]
+}
